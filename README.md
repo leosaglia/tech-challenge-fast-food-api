@@ -76,7 +76,6 @@ cd kubernetes-infra
 kubectl apply -f secrets.yaml
 kubectl apply -f postgres-service.yaml
 kubectl apply -f postgres-pv.yaml
-kubectl apply -f postgres-pvc.yaml
 kubectl apply -f postgres-statefulset.yaml
 kubectl apply -f api-service.yaml
 kubectl apply -f api-deployment.yaml
