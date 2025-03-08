@@ -3,16 +3,16 @@ on:
     branches:
       - main
 
+env:
+  DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+  DOCKERHUB_TOKEN: ${{ secrets.DOCKER_HUB_TOKEN }}
+  GITHUB_SHA: ${{ github.sha }}
+  DOCKERHUB_REPOSITORY: tech-challenge-fast-food-api
+
 jobs:
   deploy-to-dockerhub:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
-
-    env:
-      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-      DOCKERHUB_TOKEN: ${{ secrets.DOCKER_HUB_TOKEN }}
-      GITHUB_SHA: ${{ github.sha }}
-      DOCKERHUB_REPOSITORY: tech-challenge-fast-food-api
 
     steps:
       - name: Checkout code
@@ -35,7 +35,6 @@ jobs:
     env:
       AWS_REGION: us-east-1
       CLUSTER_NAME: tech-challenge-cluster
-      GITHUB_SHA: ${{ github.sha }}
 
     steps:
       - name: Checkout code
@@ -74,5 +73,5 @@ jobs:
 
       - name: Check rollout status
         run: |
-          kubectl rollout status deployment/api-deployment --timeout=60s || exit 1
-          kubectl rollout status statefulset/postgres-statefulset --timeout=60s || exit 1
+          kubectl rollout status deployment/tech-challenge-fast-food-api-deployment --timeout=60s || exit 1
+          kubectl rollout status statefulset/tech-challenge-fast-food-postgres-statefulset --timeout=60s || exit 1
