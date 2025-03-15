@@ -13,15 +13,6 @@ spec:
       labels:
         app: tech-challenge-fast-food-api
     spec:
-      initContainers:
-        - name: wait-for-postgres
-          image: busybox
-          command:
-            [
-              "sh",
-              "-c",
-              'until nc -z -v -w30 tech-challenge-fast-food-postgres 5432; do echo "Waiting for PostgreSQL..."; sleep 5; done;',
-            ]
       containers:
         - name: tech-challenge-fast-food-api
           image: leosaglia/tech-challenge-fast-food-api
