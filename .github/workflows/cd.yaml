@@ -71,4 +71,3 @@ jobs:
       - name: Check rollout status
         run: |
           kubectl rollout status deployment/tech-challenge-fast-food-api-deployment --timeout=60s || exit 1
-          kubectl rollout status statefulset/tech-challenge-fast-food-postgres-statefulset --timeout=60s || exit 1
