@@ -8,21 +8,36 @@ Esta aplicação é um desafio técnico para um sistema de gerenciamento de fast
 
 Possui configuração para gerar imagem Docker e criação de recursos kubernetes para consumo.
 
-## 🔗 Link vídeo apresentação
-https://youtu.be/mvjAK6U2kzg
+Essa versão da API é especifica para rodar com sucesso na AWS, caso queira rodar local, é necessário realizar algumas adaptações.
 
 ## 📌 Pré-requisitos
 
-Antes de começar, certifique-se de ter os seguintes recursos instalados em sua máquina.
+Antes de começar, certifique-se de ter os seguintes recursos configurados na AWS
 
-- [Minikube](https://minikube.sigs.k8s.io/docs/start)
-- [Docker](https://docs.docker.com/get-docker/)
+- [tech-challenge-infra-vpc-e-cluster-eks](https://github.com/leosaglia/tech-challenge-infra-vpc-e-cluster-eks)
+- [tech-challenge-fast-food-postgres](https://github.com/leosaglia/tech-challenge-fast-food-postgres)
 
 Os seguintes tópicos são interessantes para conhecimento, mas não são essenciais para execução.
 - [Docker Compose](https://docs.docker.com/compose/install/)
 - [Node](https://nodejs.org/pt)
 - [TypeScript](https://www.typescriptlang.org/)
 - [Prisma](https://www.prisma.io/docs/getting-started)
+
+## 🎡 Workflow
+
+Todo o deploy CI/CD é automatizado utilizado o github actions.
+
+Segue o Github flow. Possui a branch main protegida, com as alterações sendo realizadas em outras branchs, e quando concluídas, são mergeadas para main através de um PR (pull request).
+
+- O workflow de CI é definido em .github/workflows/ci.yml.
+  - Ele realiza o build e test da aplicação para garantir a integridade
+- O workflow de CD é definido em .github/workflows/cd.yml.
+  - Gera uma nova imagem e publica no docker hub
+  - Configura credenciais AWS para acessar serviços e fazer deploy.
+  - Configura kube config
+  - Aplica os recursos k8s através dos manifestos da pasta kubernetes-infra
+  - Força a atualização da imagem no deployment da API
+  - Valida rollout com sucesso
 
 ## ✨ Execução do projeto
 
@@ -61,37 +76,29 @@ Caso tenha subido com as configurações padrão mostradas no pré-requisitos, a
 http://http://localhost:3001/api-docs/
 ```
 
-### 🔆 Execução com minikube
-Iniciar o minikube:
+### 🔆 Execução na AWS
+
+Após todo o deploy automatizado ter sido realizado na AWS, conecte-se com cluster. 
+
+É possível seguir este passo a passo para realizar a configuração:
+
+https://docs.aws.amazon.com/pt_br/eks/latest/userguide/create-kubeconfig.html#create-kubeconfig-automatically
+
+Após configurar o kube config para seu cluster EKS, siga os passos:
+
+1. Liste seus pods para obter o nome do pod:
 ```sh
-minikube start
+kubectl get pods
 ```
 
-Subir a infraestrutura utilizando o kubectl. Obs: É necessário seguir essa ordem de execução para os recursos serem executados corretamente
+2. Faça o port forward de um dos pods para acessar a aplicação localmente:
 ```sh
-# a partir da raiz do projeto baixado
-cd kubernetes-infra
-
-# Criando recursos a partir dos manifestos
-kubectl apply -f secrets.yaml
-kubectl apply -f postgres-service.yaml
-kubectl apply -f postgres-pv.yaml
-kubectl apply -f postgres-statefulset.yaml
-kubectl apply -f api-service.yaml
-kubectl apply -f api-deployment.yaml
-kubectl apply -f api-hpa.yaml
+kubectl port-forward <NOME_DO_POD> 3001:3001
 ```
 
-Caso você esteja em ambiente windows e utilizando o docker desktop para ter o cluster, é necessário rodar o seguinte comando minikube para expor o serviço da API:
+Agora é possível acessar a aplicação em http://localhost:3001.
 
-```sh
-minikube service tech-challenge-ts-clean-arch-api-service --url
-```
-
-Este comando irá retornar uma url localhost com uma porta aleatória de onde será possível interagir com a API. Por exemplo:
-`http://127.0.0.1:52358/`
-
-Para acessar o swagger: `http://127.0.0.1:52358/api-docs`
+É possível consumir o serviço através do API Gateway caso o mesmo já esteja configurado.
 
 ## 📖 Documentação
 
@@ -118,19 +125,3 @@ Também é possível fazer um acompanhamento dos pedidos, se já estão em prepa
 
 ### 🔆 Arquitetura
 ![Arquitetura Kubernetes](kubernetes-infra/arquitetura.png)
-
-#### Requisitos
-- **Escalabilidade Automática:**
-  O sistema deve utilizar o Horizontal Pod Autoscaler (HPA) para garantir que a API possa escalar automaticamente com base na utilização de CPU. Isso ajudará a manter a performance durante picos de demanda.
-
-- **Persistência de Dados:**
-  O banco de dados PostgreSQL deve ser configurado com Persistent Volumes (PV) e Persistent Volume Claims (PVC) para garantir a persistência dos dados, mesmo em caso de falhas ou reinicio nos pods.
-
-- **Segurança:**
-  As credenciais de acesso ao banco de dados e outras informações sensíveis devem ser armazenadas em Secrets do Kubernetes para garantir a segurança.
-
-- **Monitoramento e Saúde:**
-  Deve ser configurado um readinessProbe e um livenessProbe para a API, garantindo que o Kubernetes possa monitorar a saúde dos pods e reiniciá-los se necessário.
-
-- **Serviços de Rede:**
-  Deve ser configurado um Service para expor a API e o banco de dados PostgreSQL, permitindo que os componentes do sistema se comuniquem entre si.
